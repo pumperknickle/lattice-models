@@ -10,6 +10,8 @@ public protocol Demand: BinaryEncodable {
     var recipient: Digest { get }
     // amount to send
     var amount: Digest { get }
+    
+    init(nonce: Digest, recipient: Digest, amount: Digest)
 }
 
 public extension Demand {

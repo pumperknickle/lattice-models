@@ -1,7 +1,7 @@
 import Foundation
 import Bedrock
 
-public let DEPOSIT_PREFIX = "deposit/".toBoolArray()
+public let DEPOSIT_PREFIX = "deposit/"
 
 public protocol Deposit: Entry {
     associatedtype DemandType: Demand where DemandType.Digest == Digest
@@ -13,9 +13,11 @@ public protocol Deposit: Entry {
 
 public extension Deposit {
     init?(action: ActionType) {
-        if !action.key.starts(with: DEPOSIT_PREFIX) { return nil }
-        let demandBits = Array(action.key.dropFirst(DEPOSIT_PREFIX.count))
-        guard let demand = DemandType(raw: demandBits) else { return nil }
+        guard let stringKey = String(raw: action.key) else { return nil }
+        if !stringKey.starts(with: DEPOSIT_PREFIX) { return nil }
+        let demandString = stringKey.dropFirst(DEPOSIT_PREFIX.count)
+        guard let demandData = demandString.data(using: .utf8) else { return nil }
+        guard let demand = try? JSONDecoder().decode(DemandType.self, from: demandData) else { return nil }
         if action.old.isEmpty {
             if action.new.isEmpty { return nil }
             let oldBalance = Digest(0)
@@ -34,6 +36,7 @@ public extension Deposit {
     }
 
     func toAction() -> ActionType {
-        return ActionType(key: DEPOSIT_PREFIX + demand.toBoolArray(), old: oldBalance == Digest(0) ? [] : oldBalance.toBoolArray(), new: newBalance == Digest(0) ? [] : newBalance.toBoolArray())
+        let demandString = String(bytes: try! JSONEncoder().encode(demand), encoding: .utf8)!
+        return ActionType(key: (DEPOSIT_PREFIX + demandString).toBoolArray(), old: oldBalance == Digest(0) ? [] : oldBalance.toBoolArray(), new: newBalance == Digest(0) ? [] : newBalance.toBoolArray())
     }
 }

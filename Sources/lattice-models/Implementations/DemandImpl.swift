@@ -5,6 +5,12 @@ public struct DemandImpl: Codable {
     private let rawNonce: Digest!
     private let rawRecipient: Digest!
     private let rawAmount: Digest!
+    
+    public init(nonce: Digest, recipient: Digest, amount: Digest) {
+        rawNonce = nonce
+        rawRecipient = recipient
+        rawAmount = amount
+    }
 }
 
 extension DemandImpl: Demand {

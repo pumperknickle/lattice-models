@@ -16,12 +16,69 @@ final class ActionSpec: QuickSpec {
             it("should convert into an action") {
                 expect(account.toAction()).toNot(beNil())
                 expect(fullCircle).toNot(beNil())
-                expect(fullCircle!.address).to(equal(account.address))
-                expect(fullCircle!.newBalance).to(equal(account.newBalance))
-                expect(fullCircle!.oldBalance).to(equal(account.oldBalance))
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(account)))
             }
-            it("should have string convertible key") {
-                expect(String(raw: account.toAction().key)).toNot(beNil())
+        }
+        describe("Deposits") {
+            typealias DepositType = DepositImpl
+            typealias DemandType = DepositType.DemandType
+            typealias Digest = DemandType.Digest
+            let demand = DemandType(nonce: Digest.random(), recipient: Digest(1), amount: Digest(10))
+            let deposit = DepositType(demand: demand, oldBalance: Digest(0), newBalance: Digest(20))
+            let fullCircle = DepositType(action: deposit.toAction())
+            it("should convert into an action") {
+                expect(deposit.toAction()).toNot(beNil())
+                expect(fullCircle).toNot(beNil())
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(deposit)))
+            }
+        }
+        describe("Genesis") {
+            typealias GenesisType = GenesisImpl
+            let genesis = GenesisType(directory: "hello world", genesisBinary: [true])
+            let fullCircle = GenesisType(action: genesis.toAction())
+            it("should convert into an action") {
+                expect(genesis.toAction()).toNot(beNil())
+                expect(fullCircle).toNot(beNil())
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(genesis)))
+            }
+        }
+        describe("Peer") {
+            typealias PeerType = PeerImpl
+            typealias Digest = PeerType.Digest
+            typealias SendableType = PeerImpl.SendableType
+            
+            let sendable = SendableType(ip: "192.168.2.2", port: 12)
+            let peer = PeerType(address: Digest(10), old: nil, new: sendable)
+            let fullCircle = PeerType(action: peer.toAction())
+            it("should convert into an action") {
+                expect(peer.toAction()).toNot(beNil())
+                expect(fullCircle).toNot(beNil())
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(peer)))
+            }
+        }
+        describe("Receipt") {
+            typealias ReceiptType = ReceiptImpl
+            typealias DemandType = ReceiptType.DemandType
+            typealias Digest = ReceiptImpl.Digest
+            let demand = DemandType(nonce: Digest.random(), recipient: Digest(1), amount: Digest(10))
+            let receipt = ReceiptType(sender: Digest(0), demand: demand)
+            let fullCircle = ReceiptType(action: receipt.toAction())
+            it("should convert into an action") {
+                expect(receipt.toAction()).toNot(beNil())
+                expect(fullCircle).toNot(beNil())
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(receipt)))
+            }
+        }
+        describe("Seed") {
+            typealias SeedType = SeedImpl
+            typealias SendableType = PeerImpl.SendableType
+            let sendable = SendableType(ip: "192.168.2.2", port: 12)
+            let seed = SeedType(directory: "hello world", oldSeeds: nil, newSeeds: [sendable])
+            let fullCircle = SeedType(action: seed.toAction())
+            it("should convert into an action") {
+                expect(seed.toAction()).toNot(beNil())
+                expect(fullCircle).toNot(beNil())
+                expect(try! JSONEncoder().encode(fullCircle!)).to(equal(try! JSONEncoder().encode(seed)))
             }
         }
     }

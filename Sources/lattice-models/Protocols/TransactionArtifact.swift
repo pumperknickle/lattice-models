@@ -78,12 +78,14 @@ public extension TransactionArtifact {
         guard let actionsRoot = Self.convert(actions: actions) else { return nil }
         guard let publicKeysRoot = Self.convert(allBinaries: publicKeys) else { return nil }
         guard let homesteadDataRoot = Self.convert(homesteadState: homesteadState, actions: actions) else { return nil }
+        guard let homesteadRoot = homesteadState.root.artifact?.core.root.digest else { return nil }
         if let parentHomesteadState = parentHomesteadState {
             guard let parentReceiptRoot = Self.convert(parentHomesteadState: parentHomesteadState, parentReceipts: parentReceipts) else { return nil }
-            self = Self(actionsRoot: actionsRoot, fee: fee, previousHash: previousHash, publicKeysRoot: publicKeysRoot, signaturesRoot: BinaryArrayAddress(digest: Digest(0)), homesteadRoot: homesteadState.root.digest, homesteadDataRoot: homesteadDataRoot, parentHomesteadRoot: parentHomesteadState.root.digest, parentReceiptRoot: parentReceiptRoot)
+            guard let parentHomesteadRoot = parentHomesteadState.root.artifact?.core.root.digest else { return nil }
+            self = Self(actionsRoot: actionsRoot, fee: fee, previousHash: previousHash, publicKeysRoot: publicKeysRoot, signaturesRoot: BinaryArrayAddress(digest: Digest(0)), homesteadRoot: homesteadRoot, homesteadDataRoot: homesteadDataRoot, parentHomesteadRoot: parentHomesteadRoot, parentReceiptRoot: parentReceiptRoot)
         }
         guard let emptyRoot = Self.emptyRoot() else { return nil }
-        self = Self(actionsRoot: actionsRoot, fee: fee, previousHash: previousHash, publicKeysRoot: publicKeysRoot, signaturesRoot: BinaryArrayAddress(digest: Digest(0)), homesteadRoot: homesteadState.root.digest, homesteadDataRoot: homesteadDataRoot, parentHomesteadRoot: nil, parentReceiptRoot: emptyRoot)
+        self = Self(actionsRoot: actionsRoot, fee: fee, previousHash: previousHash, publicKeysRoot: publicKeysRoot, signaturesRoot: BinaryArrayAddress(digest: Digest(0)), homesteadRoot: homesteadRoot, homesteadDataRoot: homesteadDataRoot, parentHomesteadRoot: nil, parentReceiptRoot: emptyRoot)
     }
     
     init?(actions: [ActionType], fee: Digest, previousHash: Digest?, publicKeySignatures: TrieMapping<Bool, [Bool]>, homesteadState: StateObject, parentHomesteadState: StateObject? = nil, parentReceipts: [ReceiptType] = []) {
@@ -246,27 +248,28 @@ public extension TransactionArtifact {
     func add(actions: [ActionType], to transaction: TransactionType) -> TransactionType? {
         return actions.reduce(transaction) { (result, entry) -> TransactionType? in
             guard let result = result else { return nil }
-            if entry.key.starts(with: ACCOUNT_PREFIX.toBoolArray()) {
+            guard let stringKey = String(raw: entry.key) else { return nil }
+            if stringKey.starts(with: ACCOUNT_PREFIX) {
                 let account = AccountType(action: entry)
                 return account == nil ? nil : result.changing(accountActions: result.accountActions + [account!])
             }
-            if entry.key.starts(with: RECEIPTS_PREFIX) {
+            if stringKey.starts(with: RECEIPTS_PREFIX) {
                 let receipt = ReceiptType(action: entry)
                 return receipt == nil ? nil : result.changing(receiptActions: result.receiptActions + [receipt!])
             }
-            if entry.key.starts(with: DEPOSIT_PREFIX) {
+            if stringKey.starts(with: DEPOSIT_PREFIX) {
                 let deposit = DepositType(action: entry)
                 return deposit == nil ? nil : result.changing(depositActions: result.depositActions + [deposit!])
             }
-            if entry.key.starts(with: GENESIS_PREFIX) {
+            if stringKey.starts(with: GENESIS_PREFIX) {
                 let genesis = GenesisType(action: entry)
                 return genesis == nil ? nil : result.changing(genesisActions: result.genesisActions + [genesis!])
             }
-            if entry.key.starts(with: SEED_PREFIX) {
+            if stringKey.starts(with: SEED_PREFIX) {
                 let seed = SeedType(action: entry)
                 return seed == nil ? nil : result.changing(seedActions: result.seedActions + [seed!])
             }
-            if entry.key.starts(with: PEER_PREFIX) {
+            if stringKey.starts(with: PEER_PREFIX) {
                 let peer = PeerType(action: entry)
                 return peer == nil ? nil : result.changing(peerActions: result.peerActions + [peer!])
             }

@@ -1,7 +1,7 @@
 import Foundation
 import CryptoStarterPack
 
-public let GENESIS_PREFIX = "genesis/".toBoolArray()
+public let GENESIS_PREFIX = "genesis/"
 
 public protocol Genesis: Codable, ActionEncodable {
     var directory: String { get }
@@ -12,13 +12,13 @@ public protocol Genesis: Codable, ActionEncodable {
 
 public extension Genesis {
     init?(action: ActionType) {
-        let directoryBits = Array(action.key.dropLast(GENESIS_PREFIX.count))
-        guard let directory = String(raw: directoryBits) else { return nil }
+        guard let stringKey = String(raw: action.key) else { return nil }
+        let directory = String(stringKey.dropFirst(GENESIS_PREFIX.count))
         if !action.old.isEmpty || action.new.isEmpty { return nil }
         self.init(directory: directory, genesisBinary: action.new)
      }
 
     func toAction() -> ActionType {
-        return ActionType(key: GENESIS_PREFIX + directory.toBoolArray(), old: [], new: genesisBinary)
+        return ActionType(key: (GENESIS_PREFIX + directory).toBoolArray(), old: [], new: genesisBinary)
     }
 }

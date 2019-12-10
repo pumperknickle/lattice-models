@@ -5,6 +5,11 @@ import Socket
 public struct SendableImpl: Codable {
     private let rawIP: String!
     private let rawPort: Int!
+    
+    public init(ip: String, port: Int) {
+        rawIP = ip
+        rawPort = port
+    }
 }
 
 extension SendableImpl: BinaryEncodable {
