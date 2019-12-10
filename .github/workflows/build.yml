@@ -1,0 +1,19 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get Homebrew
+      run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    - name: Get Libressl
+      run: brew install libressl
+    - name: Build
+      run: swift package resolve
+    - name: Run tests
+      run: swift test -v
