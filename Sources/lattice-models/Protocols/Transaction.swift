@@ -105,12 +105,10 @@ public extension Transaction {
     }
     
     func verifyDeposits() -> Bool {
-        let parentMapping = parentReceipts.reduce(Mapping<Digest, ReceiptType>()) { (result, entry) -> Mapping<Digest, ReceiptType> in
-            return result.setting(key: entry.demand.nonce, value: entry)
+        let parentMapping = parentReceipts.reduce(Mapping<DemandType, ReceiptType>()) { (result, entry) -> Mapping<DemandType, ReceiptType> in
+            return result.setting(key: entry.demand, value: entry)
         }
-        return !depositActions.contains(where: {
-            return $0.oldBalance > $0.newBalance && parentMapping[$0.demand.nonce] == nil
-        })
+        return !depositActions.contains(where: { $0.oldBalance > $0.newBalance && parentMapping[$0.demand] == nil })
     }
     
     func verifyParentReceipts() -> Bool {

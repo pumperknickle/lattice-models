@@ -20,6 +20,11 @@ final class TransactionSpec: QuickSpec {
             typealias BinaryScalar = BinaryAddress.Artifact
             typealias Digest = TransactionArtifactType.Digest
             typealias AccountType = TransactionArtifactType.AccountType
+            typealias ReceiptType = TransactionArtifactType.ReceiptType
+            typealias DemandType = ReceiptType.DemandType
+            typealias DepositType = TransactionArtifactType.DepositType
+            typealias PeerType = TransactionArtifactType.PeerType
+            typealias SendableType = PeerType.SendableType
             typealias CryptoDelegate = TransactionArtifactType.CryptoDelegateType
             
             let fee = Digest(0)
@@ -59,11 +64,63 @@ final class TransactionSpec: QuickSpec {
             describe("Every transaction containing account funds being spent needs to be signed by account owner") {
                 let transactionWithFundsSigned = convertedTransaction!.changing(accountActions: [AccountType(address: addressDigest, oldBalance: Digest(1), newBalance: Digest(0))])
                 let transactionWithFundsNotSigned = convertedTransaction!.changing(accountActions: [AccountType(address: addressDigest + Digest(1), oldBalance: Digest(1), newBalance: Digest(0))])
-                expect(transactionWithFundsSigned.verifyAll(filters: [])).to(beTrue())
-                expect(transactionWithFundsNotSigned.verifyAll(filters: [])).to(beFalse())
+                it("should reject transaction with funds not signed and vice versa") {
+                    expect(transactionWithFundsSigned.verifyAll(filters: [])).to(beTrue())
+                    expect(transactionWithFundsNotSigned.verifyAll(filters: [])).to(beFalse())
+                }
             }
             describe("Every receipt needs to pay receipt demand") {
-                
+                let sender = Digest(10)
+                let demander = addressDigest
+                let receipt = ReceiptType(sender: sender, demand: DemandType(nonce: Digest(10), recipient: demander, amount: Digest(2)))
+                let transactionWithoutReceiptPaid = convertedTransaction!.changing(receiptActions: [receipt])
+                let transacstionWithReceiptPaid = transactionWithoutReceiptPaid.changing(accountActions: [AccountType(address: demander, oldBalance: Digest(0), newBalance: Digest(2))])
+                it("should reject transaction without receipts paid") {
+                    expect(transactionWithoutReceiptPaid.verifyAll(filters: [])).to(beFalse())
+                    expect(transacstionWithReceiptPaid.verifyAll(filters: [])).to(beTrue())
+                }
+            }
+            describe("Every transaction drawing from a deposit source must have corresponding parent receipt with matching demand") {
+                let receiptSender = addressDigest
+                let demand = DemandType(nonce: Digest(0), recipient: Digest(1), amount: Digest(2))
+                let receipt = ReceiptType(sender: receiptSender, demand: demand)
+                let deposit = DepositType(demand: demand, oldBalance: 10, newBalance: 5)
+                let transactionWithDepositWithoutParentReceipts = convertedTransaction!.changing(depositActions: [deposit])
+                let transactionWithDepositWithParentReceipts = transactionWithDepositWithoutParentReceipts.changing(parentReceipts: [receipt])
+                it("should reject transaction with deposit") {
+                    expect(transactionWithDepositWithoutParentReceipts.verifyAll(filters: [])).to(beFalse())
+                    expect(transactionWithDepositWithParentReceipts.verifyAll(filters: [])).to(beTrue())
+                }
+            }
+            describe("Every transaction containing parent receipts must be signed by signed by the senders of the receipts") {
+                let demand = DemandType(nonce: Digest(0), recipient: Digest(1), amount: Digest(2))
+                let validReceipt = ReceiptType(sender: addressDigest, demand: demand)
+                let invalidReceipt = ReceiptType(sender: addressDigest + Digest(1), demand: demand)
+                let transactionWithReceiptNotSigned = convertedTransaction!.changing(parentReceipts: [invalidReceipt])
+                let transactionWithReceiptSigned = convertedTransaction!.changing(parentReceipts: [validReceipt])
+                it("should reject transation with a parent receipt not signed") {
+                    expect(transactionWithReceiptNotSigned.verifyAll(filters: [])).to(beFalse())
+                    expect(transactionWithReceiptSigned.verifyAll(filters: [])).to(beTrue())
+                }
+            }
+            describe("Every transaction containing peer changes must be signed by those peers") {
+                let sendable = SendableType(ip: "192.168.1.1", port: 88)
+                let validPeer = PeerType(address: addressDigest, old: nil, new: sendable)
+                let invalidPeer = PeerType(address: addressDigest + Digest(1), old: nil, new: sendable)
+                let transactionWithPeerNotSigned = convertedTransaction!.changing(peerActions: [invalidPeer])
+                let transactionWithPeerSigned = convertedTransaction!.changing(peerActions: [validPeer])
+                it("should reject transactions without a peer not signed") {
+                    expect(transactionWithPeerNotSigned.verifyAll(filters: [])).to(beFalse())
+                    expect(transactionWithPeerSigned.verifyAll(filters: [])).to(beTrue())
+                }
+            }
+            describe("Transactions need to pass filters") {
+                let passingRule = "var transactionFilter = function(value) { return true; }"
+                let failingRule = "var transactionFilter = function(value) { return false; }"
+                it("should reject transactions that do not pass filters") {
+                    expect(convertedTransaction!.verifyAll(filters: [passingRule])).to(beTrue())
+                    expect(convertedTransaction!.verifyAll(filters: [failingRule])).to(beFalse())
+                }
             }
         }
     }
