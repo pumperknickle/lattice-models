@@ -1,7 +1,7 @@
 import Foundation
 import Bedrock
 
-public protocol Demand: BinaryEncodable {
+public protocol Demand: DataEncodable {
     associatedtype Digest: FixedWidthInteger, Stringable
     
     // nonce to create unique demand entity
@@ -15,13 +15,12 @@ public protocol Demand: BinaryEncodable {
 }
 
 public extension Demand {
-    init?(raw: [Bool]) {
-        guard let demandData = Data(raw: raw) else { return nil }
-        guard let demand = try? JSONDecoder().decode(Self.self, from: demandData) else { return nil }
+    init?(data: Data) {
+        guard let demand = try? JSONDecoder().decode(Self.self, from: data) else { return nil }
         self = demand
     }
     
-    func toBoolArray() -> [Bool] {
-        return (try! JSONEncoder().encode(self)).toBoolArray()
+    func toData() -> Data {
+        return try! JSONEncoder().encode(self)
     }
 }

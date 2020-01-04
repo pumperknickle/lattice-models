@@ -34,7 +34,7 @@ final class ActionSpec: QuickSpec {
         }
         describe("Genesis") {
             typealias GenesisType = GenesisImpl
-            let genesis = GenesisType(directory: "hello world", genesisBinary: [true])
+            let genesis = GenesisType(directory: "hello world", genesisData: "hello world".toData())
             let fullCircle = GenesisType(action: genesis.toAction())
             it("should convert into an action") {
                 expect(genesis.toAction()).toNot(beNil())
@@ -71,9 +71,10 @@ final class ActionSpec: QuickSpec {
         }
         describe("Seed") {
             typealias SeedType = SeedImpl
+            typealias Digest = SeedType.Digest
             typealias SendableType = PeerImpl.SendableType
             let sendable = SendableType(ip: "192.168.2.2", port: 12)
-            let seed = SeedType(directory: "hello world", oldSeeds: nil, newSeeds: [sendable])
+            let seed = SeedType(directory: "hello world", digest: Digest(0), oldSeed: nil, newSeed: sendable)
             let fullCircle = SeedType(action: seed.toAction())
             it("should convert into an action") {
                 expect(seed.toAction()).toNot(beNil())

@@ -11,15 +11,14 @@ public protocol Account: Entry {
 
 public extension Account {
     init?(action: ActionType) {
-        guard let stringKey = String(raw: action.key) else { return nil }
-        let addressString = String(stringKey.dropFirst(ACCOUNT_PREFIX.count))
+        let addressString = String(action.key.dropFirst(ACCOUNT_PREFIX.count))
         guard let address = Digest(stringValue: addressString) else { return nil }
-        guard let oldBalance = Digest(raw: action.old) else { return nil }
-        guard let newBalance = Digest(raw: action.new) else { return nil }
+        guard let oldBalance = action.old == nil ? Digest(0) : Digest(data: action.old!) else { return nil }
+        guard let newBalance = action.new == nil ? Digest(0) : Digest(data: action.new!) else { return nil }
         self.init(address: address, oldBalance: oldBalance, newBalance: newBalance)
     }
 
     func toAction() -> ActionType {
-        return ActionType(key: (ACCOUNT_PREFIX + address.toString()).toBoolArray(), old: oldBalance == Digest(0) ? [] : oldBalance.toBoolArray(), new: newBalance == Digest(0) ? [] : newBalance.toBoolArray())
+        return ActionType(key: ACCOUNT_PREFIX + address.toString(), old: oldBalance == Digest(0) ? nil : oldBalance.toData(), new: newBalance == Digest(0) ? nil : newBalance.toData())
     }
 }

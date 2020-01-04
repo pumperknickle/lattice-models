@@ -5,7 +5,7 @@ import CryptoStarterPack
 import AwesomeDictionary
 import AwesomeTrie
 
-public protocol Transaction: BinaryEncodable {
+public protocol Transaction: Codable {
     associatedtype ActionType
     associatedtype Digest
     associatedtype DemandType where DemandType.Digest == Digest
@@ -30,16 +30,16 @@ public protocol Transaction: BinaryEncodable {
     var peerActions: [PeerType]! { get }
     var parentReceipts: [ReceiptType]! { get }
     var signers: Set<Digest>! { get }
-    var signatures: TrieMapping<Bool, [Bool]>! { get }
+    var signatures: Mapping<Data, Data>! { get }
     var fee: Digest! { get }
     var parentHomesteadRoot: Digest? { get }
     var transactionHash: Digest! { get }
     var stateDelta: Digest! { get }
-    var stateData: [[Bool]]! { get }
+    var stateData: [Data]! { get }
     
     func allActions() -> [ActionType]
         
-    init(unreservedActions: [ActionType], accountActions: [AccountType], receiptActions: [ReceiptType], depositActions: [DepositType], genesisActions: [GenesisType], seedActions: [SeedType], peerActions: [PeerType], parentReceipts: [ReceiptType], signers: Set<Digest>, signatures: TrieMapping<Bool, [Bool]>, fee: Digest, parentHomesteadRoot: Digest?, transactionHash: Digest, stateDelta: Digest, stateData: [[Bool]])
+    init(unreservedActions: [ActionType], accountActions: [AccountType], receiptActions: [ReceiptType], depositActions: [DepositType], genesisActions: [GenesisType], seedActions: [SeedType], peerActions: [PeerType], parentReceipts: [ReceiptType], signers: Set<Digest>, signatures: Mapping<Data, Data>, fee: Digest, parentHomesteadRoot: Digest?, transactionHash: Digest, stateDelta: Digest, stateData: [Data])
 }
 
 public extension Transaction {
@@ -48,7 +48,7 @@ public extension Transaction {
         return firstSet + genesisActions.map { $0.toAction() } + seedActions.map { $0.toAction() } + peerActions.map { $0.toAction() }
     }
     
-    func changing(unreservedActions: [ActionType]? = nil, accountActions: [AccountType]? = nil, receiptActions: [ReceiptType]? = nil, depositActions: [DepositType]? = nil, genesisActions: [GenesisType]? = nil, seedActions: [SeedType]? = nil, peerActions: [PeerType]? = nil, parentReceipts: [ReceiptType]? = nil, stateData: [[Bool]]? = nil) -> Self {
+    func changing(unreservedActions: [ActionType]? = nil, accountActions: [AccountType]? = nil, receiptActions: [ReceiptType]? = nil, depositActions: [DepositType]? = nil, genesisActions: [GenesisType]? = nil, seedActions: [SeedType]? = nil, peerActions: [PeerType]? = nil, parentReceipts: [ReceiptType]? = nil, stateData: [Data]? = nil) -> Self {
         return Self(unreservedActions: unreservedActions ?? self.unreservedActions, accountActions: accountActions ?? self.accountActions, receiptActions: receiptActions ?? self.receiptActions, depositActions: depositActions ?? self.depositActions, genesisActions: genesisActions ?? self.genesisActions, seedActions: seedActions ?? self.seedActions, peerActions: peerActions ?? self.peerActions, parentReceipts: parentReceipts ?? self.parentReceipts, signers: signers, signatures: signatures, fee: fee, parentHomesteadRoot: parentHomesteadRoot, transactionHash: transactionHash, stateDelta: stateDelta, stateData: stateData ?? self.stateData)
     }
     
@@ -84,7 +84,7 @@ public extension Transaction {
     }
     
     func verifySignatures() -> Bool {
-        let message = transactionHash.toBoolArray()
+        let message = transactionHash.toData()
         return signatures.elements().reduce(true) { (result, entry) -> Bool in
             return result && AsymmetricDelegateType.verify(message: message, publicKey: entry.0, signature: entry.1)
         }

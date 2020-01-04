@@ -2,41 +2,40 @@ import Foundation
 import Bedrock
 import Regenerate
 
-public protocol Action: BinaryEncodable {
-    var key: [Bool] { get }
-    var old: [Bool] { get }
-    var new: [Bool] { get }
+public protocol Action: DataEncodable {
+    var key: String { get }
+    var old: Data? { get }
+    var new: Data? { get }
 
     func stateDelta() -> Int
 
-    init(key: [Bool], old: [Bool], new: [Bool])
+    init(key: String, old: Data?, new: Data?)
 }
 
 public extension Action {
-    func toBoolArray() -> [Bool] {
-        return (try! JSONEncoder().encode(self)).toBoolArray()
+    func toData() -> Data {
+        return try! JSONEncoder().encode(self)
     }
     
-    init?(raw: [Bool]) {
-        guard let data = Data(raw: raw) else { return nil }
+    init?(data: Data) {
         guard let newSelf = try? JSONDecoder().decode(Self.self, from: data) else { return nil }
         self = newSelf
     }
     
     func proofType() -> TransitionProofType {
-        if new.isEmpty { return .deletion }
-        if old.isEmpty { return .creation }
+        if new == nil { return .deletion }
+        if old == nil { return .creation }
         return .mutation
     }
     
     func verify() -> Bool {
         if key.isEmpty { return false }
-        return (!old.isEmpty || !new.isEmpty)
+        return old != nil || new != nil
     }
     
     func stateDelta() -> Int {
-        if old.isEmpty { return key.count + new.count }
-        if new.isEmpty { return -old.count - key.count }
+        guard let old = old else { return key.count + (new?.count ?? 0) }
+        guard let new = new else { return -old.count - key.count }
         return new.count - old.count
     }
 }

@@ -5,20 +5,20 @@ public let GENESIS_PREFIX = "genesis/"
 
 public protocol Genesis: Codable, ActionEncodable {
     var directory: String { get }
-    var genesisBinary: [Bool] { get }
+    var genesisData: Data { get }
 
-    init(directory: String, genesisBinary: [Bool])
+    init(directory: String, genesisData: Data)
 }
 
 public extension Genesis {
     init?(action: ActionType) {
-        guard let stringKey = String(raw: action.key) else { return nil }
-        let directory = String(stringKey.dropFirst(GENESIS_PREFIX.count))
-        if !action.old.isEmpty || action.new.isEmpty { return nil }
-        self.init(directory: directory, genesisBinary: action.new)
+        let directory = String(action.key.dropFirst(GENESIS_PREFIX.count))
+        if directory.contains("/") { return nil }
+        if action.old != nil || action.new == nil { return nil }
+        self.init(directory: directory, genesisData: action.new!)
      }
 
     func toAction() -> ActionType {
-        return ActionType(key: (GENESIS_PREFIX + directory).toBoolArray(), old: [], new: genesisBinary)
+        return ActionType(key: GENESIS_PREFIX + directory, old: nil, new: genesisData)
     }
 }

@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/pumperknickle/AwesomeDictionary.git",
         "state": {
           "branch": null,
-          "revision": "34f9959e43cfedf27049f0316379b293e290f58e",
-          "version": "0.0.3"
+          "revision": "1c15823d8d39a1a8bab93722826a438fcc65acab",
+          "version": "0.0.5"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/pumperknickle/AwesomeTrie.git",
         "state": {
           "branch": null,
-          "revision": "0e6a7c813a36793ac3503bec3a849fd427af0a16",
-          "version": "0.0.7"
+          "revision": "1fa544231166e0846d69eda469aad31de4ed5343",
+          "version": "0.1.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/pumperknickle/Bedrock.git",
         "state": {
           "branch": null,
-          "revision": "c7ab73980e2765fd8ba43ac2afb23e2a2a6c37a4",
-          "version": "0.1.3"
+          "revision": "8b27772184b8ac301bc96dbb31584521d3ff0d1d",
+          "version": "0.2.0"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/pumperknickle/CryptoStarterPack.git",
         "state": {
           "branch": null,
-          "revision": "24a581d007b92771c8117db4f0b05d22945335bf",
-          "version": "1.1.6"
+          "revision": "54e35412a4c184516ec28e5cb5a56a5c5de6c399",
+          "version": "1.1.8"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
         "state": {
           "branch": null,
-          "revision": "79ac632c85df81f2618dd838fc3869633e163370",
-          "version": "1.2.0"
+          "revision": "a44caef0550c346e0ab9172f7c9a3852c1833599",
+          "version": "1.3.0"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/Quick/Nimble.git",
         "state": {
           "branch": null,
-          "revision": "6abeb3f5c03beba2b9e4dbe20886e773b5b629b6",
-          "version": "8.0.4"
+          "revision": "b02b00b30b6353632aa4a5fb6124f8147f7140c0",
+          "version": "8.0.5"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/pumperknickle/Regenerate.git",
         "state": {
           "branch": null,
-          "revision": "6be470f74ccc1478fccb488c1b0a02e405541382",
-          "version": "1.0.5"
+          "revision": "757594b821c5ac90ad7941766ad708f303079189",
+          "version": "2.0.0"
         }
       },
       {

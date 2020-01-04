@@ -1,11 +1,11 @@
 import Foundation
 
 public struct ActionImpl: Codable {
-    private let rawKey: [Bool]!
-    private let rawOld: [Bool]!
-    private let rawNew: [Bool]!
+    private let rawKey: String!
+    private let rawOld: Data?
+    private let rawNew: Data?
     
-    public init(key: [Bool], old: [Bool], new: [Bool]) {
+    public init(key: String, old: Data?, new: Data?) {
         rawKey = key
         rawOld = old
         rawNew = new
@@ -13,7 +13,7 @@ public struct ActionImpl: Codable {
 }
 
 extension ActionImpl: Action {
-    public var key: [Bool] { return rawKey }
-    public var old: [Bool] { return rawOld }
-    public var new: [Bool] { return rawNew }
+    public var key: String { return rawKey }
+    public var old: Data? { return rawOld }
+    public var new: Data? { return rawNew }
 }

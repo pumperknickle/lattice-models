@@ -1,7 +1,7 @@
 import Foundation
 import Bedrock
 import CryptoStarterPack
-import AwesomeTrie
+import AwesomeDictionary
 
 public struct TransactionImpl: Codable {
     private let rawUnreservedActions: [ActionImpl]!
@@ -13,14 +13,14 @@ public struct TransactionImpl: Codable {
     private let rawPeerActions: [PeerImpl]!
     private let rawParentReceipts: [ReceiptImpl]!
     private let rawSigners: Set<Digest>!
-    private let rawSignatures: TrieMapping<Bool, [Bool]>!
+    private let rawSignatures: Mapping<Data, Data>!
     private let rawFee: Digest!
     private let rawParentHomesteadRoot: Digest?
     private let rawTransactionHash: Digest!
     private let rawStateDelta: Digest!
-    private let rawStateData: [[Bool]]!
+    private let rawStateData: [Data]!
     
-    public init(unreservedActions: [ActionImpl], accountActions: [AccountImpl], receiptActions: [ReceiptImpl], depositActions: [DepositImpl], genesisActions: [GenesisImpl], seedActions: [SeedImpl], peerActions: [PeerImpl], parentReceipts: [ReceiptImpl], signers: Set<UInt256>, signatures: TrieMapping<Bool, [Bool]>, fee: UInt256, parentHomesteadRoot: UInt256?, transactionHash: UInt256, stateDelta: UInt256, stateData: [[Bool]]) {
+    public init(unreservedActions: [ActionImpl], accountActions: [AccountImpl], receiptActions: [ReceiptImpl], depositActions: [DepositImpl], genesisActions: [GenesisImpl], seedActions: [SeedImpl], peerActions: [PeerImpl], parentReceipts: [ReceiptImpl], signers: Set<UInt256>, signatures: Mapping<Data, Data>, fee: UInt256, parentHomesteadRoot: UInt256?, transactionHash: UInt256, stateDelta: UInt256, stateData: [Data]) {
         rawUnreservedActions = unreservedActions
         rawAccountActions = accountActions
         rawReceiptActions = receiptActions
@@ -39,18 +39,6 @@ public struct TransactionImpl: Codable {
     }
 }
 
-extension TransactionImpl: BinaryEncodable {
-    public func toBoolArray() -> [Bool] {
-        return try! JSONEncoder().encode(self).toBoolArray()
-    }
-    
-    public init?(raw: [Bool]) {
-        guard let data = Data(raw: raw) else { return nil }
-        guard let decoded = try? JSONDecoder().decode(Self.self, from: data) else { return nil }
-        self = decoded
-    }
-}
-
 extension TransactionImpl: Transaction {
     public var unreservedActions: [ActionImpl]! { return rawUnreservedActions }
     public var accountActions: [AccountImpl]! { return rawAccountActions }
@@ -61,12 +49,12 @@ extension TransactionImpl: Transaction {
     public var peerActions: [PeerImpl]! { return rawPeerActions }
     public var parentReceipts: [ReceiptImpl]! { return rawParentReceipts }
     public var signers: Set<Digest>! { return rawSigners }
-    public var signatures: TrieMapping<Bool, [Bool]>! { return rawSignatures }
+    public var signatures: Mapping<Data, Data>! { return rawSignatures }
     public var fee: Digest! { return rawFee }
     public var parentHomesteadRoot: Digest? { return rawParentHomesteadRoot }
     public var transactionHash: Digest! { return rawTransactionHash }
     public var stateDelta: Digest! { return rawStateDelta }
-    public var stateData: [[Bool]]! { return rawStateData }
+    public var stateData: [Data]! { return rawStateData }
     
     public typealias ActionType = ActionImpl
     public typealias Digest = UInt256

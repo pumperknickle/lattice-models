@@ -12,18 +12,6 @@ public struct SendableImpl: Codable {
     }
 }
 
-extension SendableImpl: BinaryEncodable {
-    public func toBoolArray() -> [Bool] {
-        return try! JSONEncoder().encode(self).toBoolArray()
-    }
-    
-    public init?(raw: [Bool]) {
-        guard let data = Data(raw: raw) else { return nil }
-        guard let decoded = try? JSONDecoder().decode(Self.self, from: data) else { return nil }
-        self = decoded
-    }
-}
-
 extension SendableImpl: Sendable {
     public func send(data: [Bool]) {
         let rawData = Data.convert(data)

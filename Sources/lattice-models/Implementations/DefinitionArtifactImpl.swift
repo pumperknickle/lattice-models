@@ -21,9 +21,9 @@ public struct DefinitionArtifactImpl: Codable {
 extension DefinitionArtifactImpl: DefinitionArtitact {
     public typealias Digest = UInt256
     public typealias DefinitionType = DefinitionImpl
-    public typealias FiltersScalar = Scalar<[String]>
-    public typealias FiltersAddress = Address<FiltersScalar>
-    public typealias FiltersArray = Array256<FiltersAddress>
+    public typealias FilterScalar = Scalar<String>
+    public typealias FilterAddress = Address<FilterScalar>
+    public typealias FiltersArray = Array256<FilterAddress>
     public typealias FiltersArrayAddress = Address<FiltersArray>
     
     public var size: Digest! { return rawSize }

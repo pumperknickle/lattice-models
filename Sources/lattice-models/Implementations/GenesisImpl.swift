@@ -3,11 +3,11 @@ import Bedrock
 
 public struct GenesisImpl: Codable {
     private let rawDirectory: String!
-    private let rawGenesisBinary: [Bool]!
+    private let rawGenesisData: Data!
     
-    public init(directory: String, genesisBinary: [Bool]) {
+    public init(directory: String, genesisData: Data) {
         self.rawDirectory = directory
-        self.rawGenesisBinary = genesisBinary
+        self.rawGenesisData = genesisData
     }
 }
 
@@ -17,5 +17,5 @@ extension GenesisImpl: ActionEncodable {
 
 extension GenesisImpl: Genesis {
     public var directory: String { return rawDirectory }
-    public var genesisBinary: [Bool] { return rawGenesisBinary }
+    public var genesisData: Data { return rawGenesisData }
 }

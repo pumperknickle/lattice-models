@@ -16,19 +16,19 @@ public protocol Peer: Codable, ActionEncodable {
 
 public extension Peer {
     init?(action: ActionType) {
-        guard let stringKey = String(raw: action.key) else { return nil }
-        let addressString = String(stringKey.dropFirst(PEER_PREFIX.count))
+        let addressString = String(action.key.dropFirst(PEER_PREFIX.count))
         guard let address = Digest(stringValue: addressString) else { return nil }
-        guard let new = SendableType(raw: action.new) else { return nil }
-        if action.old.isEmpty {
-            self = Self(address: address, old: nil, new: new)
+        guard let new = action.new else { return nil }
+        guard let newSendable = SendableType(data: new) else { return nil }
+        guard let old = action.old else {
+            self = Self(address: address, old: nil, new: newSendable)
             return
         }
-        guard let old = SendableType(raw: action.old) else { return nil }
-        self.init(address: address, old: old, new: new)
+        guard let oldSendable = SendableType(data: old) else { return nil }
+        self.init(address: address, old: oldSendable, new: newSendable)
     }
 
     func toAction() -> ActionType {
-        return ActionType(key: (PEER_PREFIX + address.toString()).toBoolArray(), old: old == nil ? [] : old!.toBoolArray(), new: new.toBoolArray())
+        return ActionType(key: PEER_PREFIX + address.toString(), old: old == nil ? nil : old!.toData(), new: new.toData())
     }
 }

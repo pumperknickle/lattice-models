@@ -28,14 +28,14 @@ final class TransactionSpec: QuickSpec {
             typealias CryptoDelegate = TransactionArtifactType.CryptoDelegateType
             
             let fee = Digest(0)
-            let addressBinary = CryptoDelegate.hash(publicKey.toBoolArray())!
-            let addressDigest = Digest(raw: addressBinary)!
+            let addressBinary = CryptoDelegate.hash(publicKey.toData())!
+            let addressDigest = Digest(data: addressBinary)!
             let homesteadState = State(da: [:])!
             let homesteadStateRoot = StateAddress(artifact: homesteadState, complete: true)!
             let homesteadStateObject = StateObject(root: homesteadStateRoot)
-            let publicKeySignatures = TrieMapping<Bool, [Bool]>()
+            let publicKeySignatures = Mapping<Data, Data>()
             let feeAction = AccountType(address: addressDigest, oldBalance: Digest(0), newBalance: Digest(1))
-            let transactionArtifact = TransactionArtifactType(actions: [feeAction.toAction()], fee: fee, previousHash: nil, publicKeySignatures: publicKeySignatures, homesteadState: homesteadStateObject, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toBoolArray(), privateKey: privateKey.toBoolArray())
+            let transactionArtifact = TransactionArtifactType(actions: [feeAction.toAction()], fee: fee, previousHash: nil, publicKeySignatures: publicKeySignatures, homesteadState: homesteadStateObject, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
             let convertedTransaction = transactionArtifact!.convertToTransaction()
             it("should not be nil") {
                 expect(homesteadState).toNot(beNil())
@@ -46,7 +46,7 @@ final class TransactionSpec: QuickSpec {
                 expect(convertedTransaction!.verifyAll(filters: [])).to(beTrue())
             }
             describe("Every transaction that have a fee that is paid") {
-                let transactionArtifact = TransactionArtifactType(actions: [feeAction.toAction()], fee: Digest(1), previousHash: nil, publicKeySignatures: publicKeySignatures, homesteadState: homesteadStateObject, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toBoolArray(), privateKey: privateKey.toBoolArray())
+                let transactionArtifact = TransactionArtifactType(actions: [feeAction.toAction()], fee: Digest(1), previousHash: nil, publicKeySignatures: publicKeySignatures, homesteadState: homesteadStateObject, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
                 let convertedTransaction = transactionArtifact!.convertToTransaction()
                 it("should reject transactions with non valid fees") {
                     expect(convertedTransaction).toNot(beNil())
@@ -56,7 +56,7 @@ final class TransactionSpec: QuickSpec {
             describe("Every transaction should have valid signatures") {
                 it("should reject transactions with invalid signatures") {
                     let realSignature = convertedTransaction!.signatures.elements().first!
-                    let fakeSignature = convertedTransaction!.signatures.setting(keys: realSignature.0, value: realSignature.1 + [true])
+                    let fakeSignature = convertedTransaction!.signatures.setting(key: realSignature.0, value: realSignature.1 + [true])
                     let fakeSigTransaction = TransactionArtifactType.TransactionType(unreservedActions: convertedTransaction!.unreservedActions, accountActions: convertedTransaction!.accountActions, receiptActions: convertedTransaction!.receiptActions, depositActions: convertedTransaction!.depositActions, genesisActions: convertedTransaction!.genesisActions, seedActions: convertedTransaction!.seedActions, peerActions: convertedTransaction!.peerActions, parentReceipts: convertedTransaction!.parentReceipts, signers: convertedTransaction!.signers, signatures: fakeSignature, fee: convertedTransaction!.fee, parentHomesteadRoot: convertedTransaction!.parentHomesteadRoot, transactionHash: convertedTransaction!.transactionHash, stateDelta: convertedTransaction!.stateDelta, stateData: convertedTransaction!.stateData)
                     expect(fakeSigTransaction.verifyAll(filters: [])).to(beFalse())
                 }
