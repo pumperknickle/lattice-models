@@ -11,6 +11,7 @@ public struct TransactionImpl: Codable {
     private let rawGenesisActions: [GenesisImpl]!
     private let rawSeedActions: [SeedImpl]!
     private let rawPeerActions: [PeerImpl]!
+    private let rawPreviousHash: Digest?
     private let rawParentReceipts: [ReceiptImpl]!
     private let rawSigners: Set<Digest>!
     private let rawSignatures: Mapping<Data, Data>!
@@ -20,7 +21,7 @@ public struct TransactionImpl: Codable {
     private let rawStateDelta: Digest!
     private let rawStateData: [Data]!
     
-    public init(unreservedActions: [ActionImpl], accountActions: [AccountImpl], receiptActions: [ReceiptImpl], depositActions: [DepositImpl], genesisActions: [GenesisImpl], seedActions: [SeedImpl], peerActions: [PeerImpl], parentReceipts: [ReceiptImpl], signers: Set<UInt256>, signatures: Mapping<Data, Data>, fee: UInt256, parentHomesteadRoot: UInt256?, transactionHash: UInt256, stateDelta: UInt256, stateData: [Data]) {
+    public init(unreservedActions: [ActionImpl], accountActions: [AccountImpl], receiptActions: [ReceiptImpl], depositActions: [DepositImpl], genesisActions: [GenesisImpl], seedActions: [SeedImpl], peerActions: [PeerImpl], previousHash: Digest?, parentReceipts: [ReceiptImpl], signers: Set<UInt256>, signatures: Mapping<Data, Data>, fee: UInt256, parentHomesteadRoot: UInt256?, transactionHash: UInt256, stateDelta: UInt256, stateData: [Data]) {
         rawUnreservedActions = unreservedActions
         rawAccountActions = accountActions
         rawReceiptActions = receiptActions
@@ -28,6 +29,7 @@ public struct TransactionImpl: Codable {
         rawGenesisActions = genesisActions
         rawSeedActions = seedActions
         rawPeerActions = peerActions
+        rawPreviousHash = previousHash
         rawParentReceipts = parentReceipts
         rawSigners = signers
         rawSignatures = signatures
@@ -47,6 +49,7 @@ extension TransactionImpl: Transaction {
     public var genesisActions: [GenesisImpl]! { return rawGenesisActions }
     public var seedActions: [SeedImpl]! { return rawSeedActions }
     public var peerActions: [PeerImpl]! { return rawPeerActions }
+    public var previousHash: Digest? { return rawPreviousHash }
     public var parentReceipts: [ReceiptImpl]! { return rawParentReceipts }
     public var signers: Set<Digest>! { return rawSigners }
     public var signatures: Mapping<Data, Data>! { return rawSignatures }

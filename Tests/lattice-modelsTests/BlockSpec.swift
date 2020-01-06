@@ -88,8 +88,34 @@ final class BlockSpec: QuickSpec {
                 let validTransactionArtifact = TransactionArtifactType(actions: [validAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
                 let validBlockArtifact = BlockArtifactType(transactionArtifacts: [validTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
                 let validBlock = validBlockArtifact!.toBlock()
-                it("should not verify") {
+                it("should not verify if blocks add more currency than reward") {
                     expect(reward).to(equal(Digest(Int(pow(Double(2), Double(10))))))
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                    expect(validBlock).toNot(beNil())
+                    expect(validBlock!.verifyAll()).to(beTrue())
+                }
+            }
+            
+            describe("Block transactions should match previous hash") {
+                let homesteadStateRoot1 = StateAddress(artifact: homesteadState1, complete: true)!
+                let homesteadStateObject1 = StateObject(root: homesteadStateRoot1)
+                let invalidTransactionArtifact = TransactionArtifactType(actions: [feeAction.toAction()], fee: fee, previousHash: nil, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+                // define block 1
+                let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [invalidTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = invalidBlockArtifact!.toBlock()
+                it("should not verify") {
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                }
+            }
+            
+            describe("new difficulty must be set correctly") {
+                let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest.max, index: Digest(1), timestamp: Double(1009), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = invalidBlockArtifact!.toBlock()
+                let validBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest.max, index: Digest(1), timestamp: Double(1010), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let validBlock = validBlockArtifact!.toBlock()
+                it("should not verify if difficulty is not set correctly") {
                     expect(invalidBlock).toNot(beNil())
                     expect(invalidBlock!.verifyAll()).to(beFalse())
                     expect(validBlock).toNot(beNil())

@@ -43,12 +43,13 @@ public extension Block {
         if body.transactions.contains(where: { !$0.genesisActions.isEmpty }) { return false }
         if !verifySize() { return false }
         if previous != nil { return false }
-        if nextDifficulty != 0 { return false }
+        if nextDifficulty != Digest.max { return false }
         return true
     }
     
     func verifyAll() -> Bool {
         if !verifyBalanceChange() { return false }
+        if !verifyTransactionPreviousHash() { return false }
         if !verifyGenesisChildrenConflicts() { return false }
         if !verifyGenesisBlocks() { return false }
         if !verifyTransactionParents() { return false }
@@ -58,6 +59,11 @@ public extension Block {
         if !verifyIndex() { return false }
         if !verifyTimestamp() { return false }
         return true
+    }
+    
+    func verifyTransactionPreviousHash() -> Bool {
+        guard let body = body else { return false }
+        return !body.transactions.contains(where: { $0.previousHash != previous?.hash })
     }
     
     func verifyGenesisRelationship(to child: Self) -> Bool {

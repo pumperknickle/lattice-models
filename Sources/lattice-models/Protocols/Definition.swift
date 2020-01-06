@@ -27,7 +27,10 @@ public extension Definition {
     }
     
     func verifyNewDifficulty(previousDifficulty: Digest, newDifficulty: Digest, blockInterval: Double) -> Bool {
-        return newDifficulty * Digest(period) <= previousDifficulty * Digest(blockInterval)
+        let newDifficultyDivided = newDifficulty.quotientAndRemainder(dividingBy: Digest(blockInterval))
+        let previousDifficultyDivided = previousDifficulty.quotientAndRemainder(dividingBy: Digest(period))
+        if newDifficultyDivided.quotient == previousDifficultyDivided.quotient { return newDifficultyDivided.remainder <= previousDifficultyDivided.remainder }
+        return newDifficultyDivided.quotient < previousDifficultyDivided.quotient
     }
 
     func halvingExponent() -> Int {

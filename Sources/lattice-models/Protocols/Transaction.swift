@@ -28,6 +28,7 @@ public protocol Transaction: Codable {
     var genesisActions: [GenesisType]! { get }
     var seedActions: [SeedType]! { get }
     var peerActions: [PeerType]! { get }
+    var previousHash: Digest? { get }
     var parentReceipts: [ReceiptType]! { get }
     var signers: Set<Digest>! { get }
     var signatures: Mapping<Data, Data>! { get }
@@ -39,7 +40,7 @@ public protocol Transaction: Codable {
     
     func allActions() -> [ActionType]
         
-    init(unreservedActions: [ActionType], accountActions: [AccountType], receiptActions: [ReceiptType], depositActions: [DepositType], genesisActions: [GenesisType], seedActions: [SeedType], peerActions: [PeerType], parentReceipts: [ReceiptType], signers: Set<Digest>, signatures: Mapping<Data, Data>, fee: Digest, parentHomesteadRoot: Digest?, transactionHash: Digest, stateDelta: Digest, stateData: [Data])
+    init(unreservedActions: [ActionType], accountActions: [AccountType], receiptActions: [ReceiptType], depositActions: [DepositType], genesisActions: [GenesisType], seedActions: [SeedType], peerActions: [PeerType], previousHash: Digest?, parentReceipts: [ReceiptType], signers: Set<Digest>, signatures: Mapping<Data, Data>, fee: Digest, parentHomesteadRoot: Digest?, transactionHash: Digest, stateDelta: Digest, stateData: [Data])
 }
 
 public extension Transaction {
@@ -49,7 +50,7 @@ public extension Transaction {
     }
     
     func changing(unreservedActions: [ActionType]? = nil, accountActions: [AccountType]? = nil, receiptActions: [ReceiptType]? = nil, depositActions: [DepositType]? = nil, genesisActions: [GenesisType]? = nil, seedActions: [SeedType]? = nil, peerActions: [PeerType]? = nil, parentReceipts: [ReceiptType]? = nil, stateData: [Data]? = nil) -> Self {
-        return Self(unreservedActions: unreservedActions ?? self.unreservedActions, accountActions: accountActions ?? self.accountActions, receiptActions: receiptActions ?? self.receiptActions, depositActions: depositActions ?? self.depositActions, genesisActions: genesisActions ?? self.genesisActions, seedActions: seedActions ?? self.seedActions, peerActions: peerActions ?? self.peerActions, parentReceipts: parentReceipts ?? self.parentReceipts, signers: signers, signatures: signatures, fee: fee, parentHomesteadRoot: parentHomesteadRoot, transactionHash: transactionHash, stateDelta: stateDelta, stateData: stateData ?? self.stateData)
+        return Self(unreservedActions: unreservedActions ?? self.unreservedActions, accountActions: accountActions ?? self.accountActions, receiptActions: receiptActions ?? self.receiptActions, depositActions: depositActions ?? self.depositActions, genesisActions: genesisActions ?? self.genesisActions, seedActions: seedActions ?? self.seedActions, peerActions: peerActions ?? self.peerActions, previousHash: previousHash, parentReceipts: parentReceipts ?? self.parentReceipts, signers: signers, signatures: signatures, fee: fee, parentHomesteadRoot: parentHomesteadRoot, transactionHash: transactionHash, stateDelta: stateDelta, stateData: stateData ?? self.stateData)
     }
     
     func verifyFee() -> Bool {

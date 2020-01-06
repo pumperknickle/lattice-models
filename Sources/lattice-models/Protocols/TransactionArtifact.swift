@@ -236,7 +236,7 @@ public extension TransactionArtifact {
         guard let transactionHash = calculateTransactionHash() else { return nil }
         guard let actions = extractActions() else { return nil }
         guard let stateData = extractStateData() else { return nil }
-        let emptyTransactionType = TransactionType(unreservedActions: [], accountActions: [], receiptActions: [], depositActions: [], genesisActions: [], seedActions: [], peerActions: [], parentReceipts: [], signers: signers, signatures: allSignatures, fee: fee, parentHomesteadRoot: parentHomesteadRoot, transactionHash:  transactionHash, stateDelta: actions.stateDelta(), stateData: stateData)
+        let emptyTransactionType = TransactionType(unreservedActions: [], accountActions: [], receiptActions: [], depositActions: [], genesisActions: [], seedActions: [], peerActions: [], previousHash: previousHash, parentReceipts: [], signers: signers, signatures: allSignatures, fee: fee, parentHomesteadRoot: parentHomesteadRoot, transactionHash:  transactionHash, stateDelta: actions.stateDelta(), stateData: stateData)
         guard let transactionWithoutParentReceipts = add(actions: actions, to: emptyTransactionType) else { return nil }
         if parentHomesteadRoot == nil { return transactionWithoutParentReceipts }
         guard let parentReceiptData = extractParentReceiptsData() else { return nil }
