@@ -32,6 +32,7 @@ final class BlockSpec: QuickSpec {
             
             // define chain metadata definition
             let definition = DefinitionArtifactType(size: Digest(1000000), premine: Digest(1000000000000000000), period: Double(10), initialRewardExponent: 10, filters: ["var transactionFilter = function(value) { return true; }"])
+            let convertedDefinition = definition?.toDefinition()
 
             // define user
             let addressBinary = CryptoDelegate.hash(publicKey.toData())!
@@ -70,9 +71,30 @@ final class BlockSpec: QuickSpec {
             
             it("should create the definition and transaction succesfully") {
                 expect(transactionArtifact1).toNot(beNil())
-                expect(definition).toNot(beNil())
-                expect(blockArtifact1).toNot(beNil())
+                expect(convertedDefinition).toNot(beNil())
                 expect(convertedBlock).toNot(beNil())
+                expect(convertedBlock!.verifyAll()).to(beTrue())
+            }
+            
+            describe("Blocks cannot add more currency than reward") {
+                let fee = Digest(0)
+                let reward = convertedDefinition!.rewardAtBlock(index: 1)
+                let invalidAction = AccountType(address: addressDigest, oldBalance: Digest(10), newBalance: Digest(10) + reward + Digest(1))
+                let invalidTransactionArtifact = TransactionArtifactType(actions: [invalidAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+                let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [invalidTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = invalidBlockArtifact!.toBlock()
+                
+                let validAction = AccountType(address: addressDigest, oldBalance: Digest(10), newBalance: Digest(10) + reward)
+                let validTransactionArtifact = TransactionArtifactType(actions: [validAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+                let validBlockArtifact = BlockArtifactType(transactionArtifacts: [validTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let validBlock = validBlockArtifact!.toBlock()
+                it("should not verify") {
+                    expect(reward).to(equal(Digest(Int(pow(Double(2), Double(10))))))
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                    expect(validBlock).toNot(beNil())
+                    expect(validBlock!.verifyAll()).to(beTrue())
+                }
             }
         }
     }

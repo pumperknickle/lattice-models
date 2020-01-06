@@ -96,7 +96,7 @@ public extension Block {
     
     func verifyBalanceChange() -> Bool {
         guard let body = body else { return false }
-        return body.transactions.map { $0.oldBalances() }.reduce(body.definition.rewardAtBlock(index: index), +) <= body.transactions.map { $0.newBalances() }.reduce(Digest(0), +)
+        return body.transactions.map { $0.oldBalances() }.reduce(body.definition.rewardAtBlock(index: index), +) >= body.transactions.map { $0.newBalances() }.reduce(Digest(0), +)
     }
         
     func verifyGenesisChildrenConflicts() -> Bool {
