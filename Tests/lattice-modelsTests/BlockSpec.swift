@@ -122,6 +122,17 @@ final class BlockSpec: QuickSpec {
                     expect(validBlock!.verifyAll()).to(beTrue())
                 }
             }
+            
+            describe("transactiont must verify for block to verify") {
+                let definition = DefinitionArtifactType(size: Digest(1000000), premine: Digest(1000000000000000000), period: Double(10), initialRewardExponent: 10, filters: ["var transactionFilter = function(value) { return false; }"])
+                let invalidGenesisBlock = BlockArtifactType(transactionArtifacts: [transactionArtifact0!], definitionArtifact: definition!, nextDifficulty: Digest.max, index: Digest(0), timestamp: Double(1000), previousBlock: nil, homestead: homesteadState0.core.digest, parent: nil, nonce: Digest(0), children: [:])
+                let blockArtifact1 = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: invalidGenesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = blockArtifact1!.toBlock()
+                it("should not verify if tranasctions do not verify") {
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                }
+            }
         }
     }
 }

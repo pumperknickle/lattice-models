@@ -174,6 +174,8 @@ public extension BlockArtifact {
     
     func toBlock() -> BlockType? {
         guard let previousRoot = previousRoot else { return nil }
+        guard let previousArtifact = previousRoot.artifact else { return nil }
+        if previousArtifact.definitionRoot.digest != definitionRoot.digest { return nil }
         guard let previous = previousRoot.artifact?.backwardsChain(hash: previousRoot.digest) else { return nil }
         guard let hash = hash() else { return nil }
         guard let childBlocks = convertChildBlocks() else { return nil }
