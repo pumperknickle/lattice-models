@@ -62,7 +62,7 @@ public extension BlockArtifact {
             guard let previousAddress = BlockAddress(artifact: previousBlock, complete: true) else { return nil }
             guard let transactionsRoot = Self.convert(transactionArtifacts: transactionArtifacts) else { return nil }
             guard let definitionRoot = DefinitionAddress(artifact: definitionArtifact, complete: true) else { return nil }
-            guard let frontierState = Self.getFrontierState(homestead: homestead, transactionsRoot: transactionsRoot) else { return nil }
+            guard let frontierState = Self.getFrontierDigest(homestead: homestead, transactionsRoot: transactionsRoot) else { return nil }
             self = Self(transactionsRoot: transactionsRoot, definitionRoot: definitionRoot, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previousRoot: previousAddress, homestead: homestead, parentIndex: parent?.parentIndex, parentHomesteead: parent?.parentHomestead, frontier: frontierState, nonce: nonce, children: childAddress)
         }
         else {
@@ -153,7 +153,7 @@ public extension BlockArtifact {
         guard let transactionsRoot = Self.convert(transactionArtifacts: transactionArtifacts) else { return nil }
         guard let definitionRoot = DefinitionAddress(artifact: definitionArtifact, complete: true) else { return nil }
         guard let emptyRoot = Self.emptyRoot() else { return nil }
-        guard let frontierState = Self.getFrontierState(homestead: emptyRoot, transactionsRoot: transactionsRoot) else { return nil }
+        guard let frontierState = Self.getFrontierDigest(homestead: emptyRoot, transactionsRoot: transactionsRoot) else { return nil }
         guard let emptyChildRoot = Self.emptyChildRoot() else { return nil }
         return Self(transactionsRoot: transactionsRoot, definitionRoot: definitionRoot, nextDifficulty: nextDifficulty, index: Digest(0), timestamp: timestamp, previousRoot: nil, homestead: emptyRoot, parentIndex: parentIndex, parentHomesteead: parentHomestead, frontier: frontierState, nonce: nonce, children: emptyChildRoot)
     }
@@ -204,12 +204,16 @@ public extension BlockArtifact {
         return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: finalGenesisBlocks, nonce: nonce, childrenHashes: finalCombinedHashes, children: childBlocks, hash: hash)
     }
     
-    static func getFrontierState(homestead: Digest, transactionsRoot: TransactionArrayAddress) -> Digest? {
+    static func getFrontier(homestead: Digest, transactionsRoot: TransactionArrayAddress) -> State.CoreType? {
         guard let transactions = Self.extractTransactions(transactionsRoot: transactionsRoot) else { return nil }
-        return Self.getFrontierState(homestead: homestead, transactions: transactions)
+        return Self.getFrontier(homestead: homestead, transactions: transactions)
+    }
+
+    static func getFrontierDigest(homestead: Digest, transactionsRoot: TransactionArrayAddress) -> Digest? {
+        return getFrontier(homestead: homestead, transactionsRoot: transactionsRoot)?.root.digest
     }
     
-    static func getFrontierState(homestead: Digest, transactions: [TransactionType]) -> Digest? {
+    static func getFrontier(homestead: Digest, transactions: [TransactionType]) -> State.CoreType? {
         let allActions = transactions.map { $0.allActions() }.reduce([], +)
         let allStateData = transactions.map { $0.stateData }.reduce([], +)
         let nonDeletionActions = allActions.reduce(Mapping<String, Data>()) { (result, entry) -> Mapping<String, Data>?
@@ -225,24 +229,29 @@ public extension BlockArtifact {
             return result + [entry.key]
         }
         guard let emptyState = State(da: [:]) else { return nil }
-        guard let initialCoreState = (homestead == emptyRoot() ? emptyState.core.capture(info: []) : State.CoreType(root: State.CoreRoot(digest: homestead)).capture(info: allStateData)) else { return nil }
+        guard let initialCoreState = (homestead == emptyRoot() ? emptyState.core.capture(info: []) : State.CoreType(root: State.CoreRoot(digest: homestead)).mask().0.capture(info: allStateData)) else { return nil }
         guard let nonDeletions = nonDeletionActions else { return nil }
         guard let deletions = deletionActions else { return nil }
         let stateAfterNonDeletionActions = nonDeletions.elements().reduce(initialCoreState.0) { (result, entry) -> State.CoreType? in
             guard let result = result else { return nil }
-            guard let dataAddress = DataAddress(artifact: DataScalar(scalar: entry.1), complete: true) else { return nil }
-            return result.setting(key: entry.0, to: dataAddress)
+            let dataScalar: DataScalar = DataScalar(scalar: entry.1)
+            guard let dataAddress = DataAddress(artifact: dataScalar, complete: true) else { return nil }
+            return result.setting(key: entry.0, to: dataAddress.empty())
         }
         guard let stateAfterNonDeletions = stateAfterNonDeletionActions else { return nil }
         let stateAfterDeletionActions = deletions.reduce(stateAfterNonDeletions) { (result, entry) -> State.CoreType? in
             guard let result = result else { return nil }
             return result.deleting(key: entry)
         }
-        return stateAfterDeletionActions?.root.digest
+        return stateAfterDeletionActions
+    }
+    
+    static func getFrontierDigest(homestead: Digest, transactions: [TransactionType]) -> Digest? {
+        return getFrontier(homestead: homestead, transactions: transactions)?.root.digest
     }
     
     func verifyFrontierState(homestead: Digest, transactions: [TransactionType]) -> Bool {
-        guard let calculatedFrontier = Self.getFrontierState(homestead: homestead, transactions: transactions) else { return false }
+        guard let calculatedFrontier = Self.getFrontierDigest(homestead: homestead, transactions: transactions) else { return false }
         return calculatedFrontier == frontier
     }
     

@@ -62,10 +62,17 @@ final class BlockSpec: QuickSpec {
             let feeAction = AccountType(address: addressDigest, oldBalance: Digest(10), newBalance: Digest(9))
             let homesteadStateRoot1 = StateAddress(artifact: homesteadState1, complete: true)!
             let homesteadStateObject1 = StateObject(root: homesteadStateRoot1)
-            let transactionArtifact1 = TransactionArtifactType(actions: [feeAction.toAction()], fee: fee, previousHash: nil, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+            let transactionArtifact1 = TransactionArtifactType(actions: [feeAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+            
+            // define block 1
+            let blockArtifact1 = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+            let convertedBlock = blockArtifact1!.toBlock()
+            
             it("should create the definition and transaction succesfully") {
                 expect(transactionArtifact1).toNot(beNil())
                 expect(definition).toNot(beNil())
+                expect(blockArtifact1).toNot(beNil())
+                expect(convertedBlock).toNot(beNil())
             }
         }
     }

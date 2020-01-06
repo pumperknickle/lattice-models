@@ -10,7 +10,7 @@ let package = Package(
             targets: ["lattice-models"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/pumperknickle/Regenerate.git", from: "2.0.0"),
+        .package(url: "https://github.com/pumperknickle/Regenerate.git", from: "2.0.2"),
         .package(url: "https://github.com/pumperknickle/CryptoStarterPack.git", from: "1.1.8"),
         .package(url: "https://github.com/pumperknickle/Bedrock.git", from: "0.2.0"),
         .package(url: "https://github.com/pumperknickle/AwesomeDictionary.git", from: "0.0.3"),
