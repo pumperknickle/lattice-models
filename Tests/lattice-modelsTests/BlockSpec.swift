@@ -27,6 +27,8 @@ final class BlockSpec: QuickSpec {
             typealias DataAddress = TransactionArtifactType.DataAddress
             typealias DataScalar = TransactionArtifactType.DataScalar
             typealias AccountType = TransactionArtifactType.AccountType
+            typealias PeerType = TransactionArtifactType.PeerType
+            typealias SendableType = PeerType.SendableType
             
             typealias Digest = TransactionArtifactType.Digest
             
@@ -83,7 +85,6 @@ final class BlockSpec: QuickSpec {
                 let invalidTransactionArtifact = TransactionArtifactType(actions: [invalidAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
                 let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [invalidTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
                 let invalidBlock = invalidBlockArtifact!.toBlock()
-                
                 let validAction = AccountType(address: addressDigest, oldBalance: Digest(10), newBalance: Digest(10) + reward)
                 let validTransactionArtifact = TransactionArtifactType(actions: [validAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
                 let validBlockArtifact = BlockArtifactType(transactionArtifacts: [validTransactionArtifact!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
@@ -139,6 +140,25 @@ final class BlockSpec: QuickSpec {
                 let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: invalidDefinition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
                 let invalidBlock = invalidBlockArtifact?.toBlock()
                 it("should not verify if definition hash differs from previous") {
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                }
+            }
+            
+            describe("block transaction deltas must be under size limit stated in definition") {
+                let invalidDefinition = DefinitionArtifactType(size: Digest(10), premine: Digest(1000000000000000000), period: Double(10), initialRewardExponent: 10, filters: ["var transactionFilter = function(value) { return true; }"])
+                let sendable = SendableType(ip: "192.1.1.1", port: 10)
+                let peerAction = PeerType(address: addressDigest, old: nil, new: sendable)
+                let transactionArtifact1 = TransactionArtifactType(actions: [feeAction.toAction(), peerAction.toAction()], fee: fee, previousHash: genesisAddress!.digest, publicKeySignatures: Mapping<Data, Data>(), homesteadState: homesteadStateObject1, parentHomesteadState: nil, parentReceipts: [], publicKey: publicKey.toData(), privateKey: privateKey.toData())
+                let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: invalidDefinition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = invalidBlockArtifact?.toBlock()
+                
+                let validBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(1001), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let validBlock = validBlockArtifact?.toBlock()
+
+                it("should not verify if oversized") {
+                    expect(validBlock).toNot(beNil())
+                    expect(validBlock!.verifyAll()).to(beTrue())
                     expect(invalidBlock).toNot(beNil())
                     expect(invalidBlock!.verifyAll()).to(beFalse())
                 }
