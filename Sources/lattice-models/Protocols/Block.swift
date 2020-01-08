@@ -11,6 +11,7 @@ public protocol Block: Codable {
     typealias DefinitionType = BlockBodyType.DefinitionType
     
     var body: BlockBodyType? { get }
+    var definitionHash: Digest! { get }
     var nextDifficulty: Digest! { get }
     var index: Digest! { get }
     var timestamp: Double! { get }
@@ -24,12 +25,16 @@ public protocol Block: Codable {
     var children: Mapping<String, Self>! { get }
     var hash: Digest! { get }
     
-    init(body: BlockBodyType?, nextDifficulty: Digest, index: Digest, timestamp: Double, previous: Self?, homestead: Digest, parentHomestead: Digest?, frontier: Digest, genesis: Mapping<String, Self>, nonce: Digest, childrenHashes: Mapping<String, Digest>, children: Mapping<String, Self>, hash: Digest)
+    init(body: BlockBodyType?, definitionHash: Digest, nextDifficulty: Digest, index: Digest, timestamp: Double, previous: Self?, homestead: Digest, parentHomestead: Digest?, frontier: Digest, genesis: Mapping<String, Self>, nonce: Digest, childrenHashes: Mapping<String, Digest>, children: Mapping<String, Self>, hash: Digest)
 }
 
 public extension Block {
-    func changing(body: BlockBodyType? = nil, index: Digest? = nil, timestamp: Double? = nil, homestead: Digest? = nil, frontier: Digest? = nil, genesis: Mapping<String, Self>? = nil, nonce: Digest? = nil, childrenHashes: Mapping<String, Digest>? = nil, children: Mapping<String, Self>? = nil, hash: Digest? = nil) -> Self {
-        return Self(body: body ?? self.body, nextDifficulty: nextDifficulty ?? self.nextDifficulty, index: index ?? self.index, timestamp: timestamp ?? self.timestamp, previous: previous, homestead: homestead ?? self.homestead, parentHomestead: parentHomestead, frontier: frontier ?? self.frontier, genesis: genesis ?? self.genesis, nonce: nonce ?? self.nonce, childrenHashes: childrenHashes ?? self.childrenHashes, children: children ?? self.children, hash: hash ?? self.hash)
+    func changing(definitionHash: Digest? = nil, index: Digest? = nil, timestamp: Double? = nil, homestead: Digest? = nil, frontier: Digest? = nil, genesis: Mapping<String, Self>? = nil, nonce: Digest? = nil, childrenHashes: Mapping<String, Digest>? = nil, children: Mapping<String, Self>? = nil, hash: Digest? = nil) -> Self {
+        return Self(body: body, definitionHash: definitionHash ?? self.definitionHash, nextDifficulty: nextDifficulty ?? self.nextDifficulty, index: index ?? self.index, timestamp: timestamp ?? self.timestamp, previous: previous, homestead: homestead ?? self.homestead, parentHomestead: parentHomestead, frontier: frontier ?? self.frontier, genesis: genesis ?? self.genesis, nonce: nonce ?? self.nonce, childrenHashes: childrenHashes ?? self.childrenHashes, children: children ?? self.children, hash: hash ?? self.hash)
+    }
+        
+    func changing(body: BlockBodyType?) -> Self {
+        return Self(body: body, definitionHash: definitionHash, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: genesis, nonce: nonce, childrenHashes: childrenHashes, children: children, hash: hash)
     }
     
     func verifyAllForGenesis() -> Bool {
@@ -58,6 +63,7 @@ public extension Block {
         if !verifySize() { return false }
         if !verifyIndex() { return false }
         if !verifyTimestamp() { return false }
+        if !verifyDefinitionToPrevious() { return false }
         return true
     }
     
@@ -143,5 +149,10 @@ public extension Block {
     func verifyTimestamp() -> Bool {
         guard let previous = previous else { return false }
         return previous.timestamp < timestamp
+    }
+    
+    func verifyDefinitionToPrevious() -> Bool {
+        guard let previous = previous else { return false }
+        return previous.definitionHash == definitionHash
     }
 }

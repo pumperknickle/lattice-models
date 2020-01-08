@@ -174,8 +174,6 @@ public extension BlockArtifact {
     
     func toBlock() -> BlockType? {
         guard let previousRoot = previousRoot else { return nil }
-        guard let previousArtifact = previousRoot.artifact else { return nil }
-        if previousArtifact.definitionRoot.digest != definitionRoot.digest { return nil }
         guard let previous = previousRoot.artifact?.backwardsChain(hash: previousRoot.digest) else { return nil }
         guard let hash = hash() else { return nil }
         guard let childBlocks = convertChildBlocks() else { return nil }
@@ -186,7 +184,7 @@ public extension BlockArtifact {
         }
         guard let finalChildHashes = childHashes else { return nil }
         if !definitionRoot.complete || !transactionsRoot.complete {
-            return BlockType(body: nil, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: finalChildHashes, children: childBlocks, hash: hash)
+            return BlockType(body: nil, definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: finalChildHashes, children: childBlocks, hash: hash)
         }
         guard let definition = extractDefinition() else { return nil }
         guard let transactions = extractTransactions() else { return nil }
@@ -203,7 +201,7 @@ public extension BlockArtifact {
             return result.setting(key: entry.0, value: childHash)
         }
         guard let finalCombinedHashes = combinedHashes else { return nil }
-        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: finalGenesisBlocks, nonce: nonce, childrenHashes: finalCombinedHashes, children: childBlocks, hash: hash)
+        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previous, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: finalGenesisBlocks, nonce: nonce, childrenHashes: finalCombinedHashes, children: childBlocks, hash: hash)
     }
     
     static func getFrontier(homestead: Digest, transactionsRoot: TransactionArrayAddress) -> State.CoreType? {
@@ -262,7 +260,7 @@ public extension BlockArtifact {
         guard let definition = extractDefinition() else { return nil }
         guard let transactions = extractTransactions() else { return nil }
         guard let hash = hash() else { return nil }
-        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
+        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
     }
     
     func proofOfWork() -> Digest? {
@@ -309,9 +307,9 @@ public extension BlockArtifact {
 
     func backwardsChain(hash: Digest) -> BlockType {
         guard let previousBlockRoot = previousRoot, let previousBlockArtifact = previousBlockRoot.artifact else {
-            return BlockType(body: nil, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
+            return BlockType(body: nil, definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
         }
         let previousBackwardsChain = previousBlockArtifact.backwardsChain(hash: previousBlockRoot.digest)
-        return BlockType(body: nil, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previousBackwardsChain, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
+        return BlockType(body: nil, definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: previousBackwardsChain, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
     }
 }

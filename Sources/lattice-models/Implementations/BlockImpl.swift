@@ -3,6 +3,7 @@ import AwesomeDictionary
 
 public struct BlockImpl: Codable {
     private let rawBody: BlockBodyType?
+    private let rawDefinitionHash: Digest!
     private let rawNextDifficulty: Digest!
     private let rawIndex: Digest!
     private let rawTimestamp: Double!
@@ -16,8 +17,9 @@ public struct BlockImpl: Codable {
     private let rawChildren: Mapping<String, Self>!
     private let rawHash: Digest!
     
-    public init(body: BlockBodyType?, nextDifficulty: Digest, index: Digest, timestamp: Double, previous: Self?, homestead: Digest, parentHomestead: Digest?, frontier: Digest, genesis: Mapping<String, Self>, nonce: Digest, childrenHashes: Mapping<String, Digest>, children: Mapping<String, Self>, hash: Digest) {
+    public init(body: BlockBodyType?, definitionHash: Digest, nextDifficulty: Digest, index: Digest, timestamp: Double, previous: Self?, homestead: Digest, parentHomestead: Digest?, frontier: Digest, genesis: Mapping<String, Self>, nonce: Digest, childrenHashes: Mapping<String, Digest>, children: Mapping<String, Self>, hash: Digest) {
         rawBody = body
+        rawDefinitionHash = definitionHash
         rawNextDifficulty = nextDifficulty
         rawIndex = index
         rawTimestamp = timestamp
@@ -37,6 +39,7 @@ extension BlockImpl: Block {
     public typealias BlockBodyType = BlockBodyImpl
 
     public var body: BlockBodyType? { return rawBody }
+    public var definitionHash: Digest! { return rawDefinitionHash }
     public var nextDifficulty: Digest! { return rawNextDifficulty }
     public var index: Digest! { return rawIndex }
     public var timestamp: Double! { return rawTimestamp }
