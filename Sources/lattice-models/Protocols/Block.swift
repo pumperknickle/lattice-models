@@ -58,11 +58,11 @@ public extension Block {
         if !verifyGenesisChildrenConflicts() { return false }
         if !verifyGenesisBlocks() { return false }
         if !verifyTransactionParents() { return false }
-        if !verifyDifficulty() { return false }
         if !verifyTransactions() { return false }
         if !verifySize() { return false }
         if !verifyIndex() { return false }
         if !verifyTimestamp() { return false }
+        if !verifyDifficulty() { return false }
         if !verifyDefinitionToPrevious() { return false }
         return true
     }

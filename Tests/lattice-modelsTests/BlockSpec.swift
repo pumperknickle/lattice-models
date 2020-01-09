@@ -173,6 +173,16 @@ final class BlockSpec: QuickSpec {
                     expect(invalidBlock!.verifyAll()).to(beFalse())
                 }
             }
+            
+            describe("blocks must have increasing timestamp to previous block") {
+                let invalidBlockArtifact = BlockArtifactType(transactionArtifacts: [transactionArtifact1!], definitionArtifact: definition!, nextDifficulty: Digest(10), index: Digest(1), timestamp: Double(999), previousBlock: genesisBlock!, homestead: homesteadState1.core.root.digest, parent: nil, nonce: Digest(1), children: [:])
+                let invalidBlock = invalidBlockArtifact?.toBlock()
+
+                it("should not verify if timestamp incorrect") {
+                    expect(invalidBlock).toNot(beNil())
+                    expect(invalidBlock!.verifyAll()).to(beFalse())
+                }
+            }
         }
     }
 }
