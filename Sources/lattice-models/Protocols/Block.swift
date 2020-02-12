@@ -103,7 +103,7 @@ public extension Block {
     
     func verifyGenesisBalanceChange() -> Bool {
         guard let body = body else { return false }
-        return body.definition.premineAmount() <= body.transactions.map { $0.newBalances() }.reduce(Digest(0), +)
+        return body.definition.premineAmount() + body.definition.rewardAtBlock(index: Digest(0)) >= body.transactions.map { $0.newBalances() }.reduce(Digest(0), +)
     }
     
     func verifyBalanceChange() -> Bool {

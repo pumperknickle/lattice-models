@@ -172,6 +172,14 @@ public extension BlockArtifact {
         }
     }
     
+    func toGenesis() -> BlockType? {
+        if previousRoot != nil { return nil }
+        guard let definition = extractDefinition() else { return nil }
+        guard let transactions = extractTransactions() else { return nil }
+        guard let hash = hash() else { return nil }
+        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
+    }
+        
     func toBlock() -> BlockType? {
         guard let previousRoot = previousRoot else { return nil }
         guard let previous = previousRoot.artifact?.backwardsChain(hash: previousRoot.digest) else { return nil }
@@ -253,14 +261,6 @@ public extension BlockArtifact {
     func verifyFrontierState(homestead: Digest, transactions: [TransactionType]) -> Bool {
         guard let calculatedFrontier = Self.getFrontierDigest(homestead: homestead, transactions: transactions) else { return false }
         return calculatedFrontier == frontier
-    }
-    
-    func toGenesis() -> BlockType? {
-        if previousRoot != nil { return nil }
-        guard let definition = extractDefinition() else { return nil }
-        guard let transactions = extractTransactions() else { return nil }
-        guard let hash = hash() else { return nil }
-        return BlockType(body: BlockBodyType(transactions: transactions, definition: definition), definitionHash: definitionRoot.digest, nextDifficulty: nextDifficulty, index: index, timestamp: timestamp, previous: nil, homestead: homestead, parentHomestead: parentHomestead, frontier: frontier, genesis: Mapping<String, BlockType>(), nonce: nonce, childrenHashes: Mapping<String, Digest>(), children: Mapping<String, BlockType>(), hash: hash)
     }
     
     func proofOfWork() -> Digest? {

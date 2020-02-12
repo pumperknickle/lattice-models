@@ -54,7 +54,7 @@ public extension Definition {
     }
     
     func totalRewards(count: Digest, currentTotal: Digest, currentReward: Digest, halving: Digest) -> Digest {
-        if currentReward == Digest(1) { return currentTotal + halving }
+        if currentReward == Digest(1) { return currentTotal + min(halving, count) }
         if count <= halving { return currentTotal + (currentReward * count) }
         return totalRewards(count: count - halving, currentTotal: currentTotal + (currentReward * halving), currentReward: currentReward / 2, halving: halving)
     }
